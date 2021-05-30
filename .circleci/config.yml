@@ -10,6 +10,7 @@ jobs:
       - eb/setup
       - run:
           command: |
+            eb platform list
             eb init
             eb create my-environment
             eb deploy my-environment
