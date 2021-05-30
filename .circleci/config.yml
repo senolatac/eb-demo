@@ -10,8 +10,7 @@ jobs:
       - eb/setup
       - run:
           command: |
-            eb platform list
-            eb init
+            eb init my-environment -r $AWS_DEFAULT_REGION -p Java 11
             eb create my-environment
             eb deploy my-environment
             eb status
