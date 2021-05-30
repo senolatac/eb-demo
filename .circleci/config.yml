@@ -35,4 +35,5 @@ workflows:
     jobs:
       - eb-build
       - eb-demo
-          requires: [eb-build]
+          requires:
+            - eb-build
