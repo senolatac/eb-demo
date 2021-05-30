@@ -34,6 +34,6 @@ workflows:
   elastic-beanstalk-workflow:
     jobs:
       - eb-build
-      - eb-demo
+      - eb-demo:
           requires:
             - eb-build
