@@ -42,14 +42,14 @@ workflows:
   elastic-beanstalk-workflow:
     jobs:
       - eb-build
-      - eb-create:
-          requires:
-            - eb-build
       - eb-upload:
           requires:
-            - eb-create
+            - eb-build
+      - eb-create:
+          requires:
+            - eb-upload
       - eb/deploy:
           environment-name: my-environment
           label: version-${CIRCLE_SHA1:0:7}
           requires:
-            - eb-upload
+            - eb-create
