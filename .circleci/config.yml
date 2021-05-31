@@ -17,9 +17,9 @@ jobs:
                   fi
             # As the JAR was only assembled in the first build container, build/libs will be empty in all the other build containers.
       - persist_to_workspace:
-          root: build
+          root: .
           paths:
-            - libs
+            - build/libs
   eb-upload:
     docker:
       - image: circleci/python:2.7
