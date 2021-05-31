@@ -28,7 +28,7 @@ jobs:
           at: /tmp/workspace
       - run: sudo pip install awscli
       - run: |
-          aws s3 cp /tmp/workspace s3://elasticbeanstalk-us-east-1-548035349282 --recursive
+          aws s3 cp /tmp/workspace s3://elasticbeanstalk-us-east-1-548035349282/my-environment --recursive
   eb-create:
     docker:
       - image: 'cimg/base:stable'
