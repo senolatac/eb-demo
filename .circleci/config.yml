@@ -47,11 +47,8 @@ workflows:
       - eb-upload:
           requires:
             - eb-build
-      - eb-create:
-          requires:
-            - eb-upload
       - eb/deploy:
           environment-name: my-environment
           label: version-${CIRCLE_SHA1:0:7}
           requires:
-            - eb-create
+            - eb-upload
