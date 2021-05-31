@@ -1,6 +1,7 @@
 version: 2.1
 orbs:
   eb: circleci/aws-elastic-beanstalk@1.0.0
+  aws-s3: circleci/aws-s3@2.0.0
 jobs:
   eb-build:
     docker:
@@ -17,7 +18,7 @@ jobs:
             # As the JAR was only assembled in the first build container, build/libs will be empty in all the other build containers.
       - store_artifacts:
           path: build/libs
-  eb-deploy:
+  eb-upload:
     docker:
       - image: circleci/python:2.7
     steps:
@@ -25,16 +26,41 @@ jobs:
           at: /tmp/workspace
       - run: sudo pip install awscli
       - run: |
-          export BUCKET_NAME=elasticbeanstalk-${AWS_DEFAULT_REGION}-${AWS_ACCOUNT_ID}
-          eb init my-environment -r $AWS_DEFAULT_REGION -p "arn:aws:elasticbeanstalk:us-east-1::platform/Corretto 11 running on 64bit Amazon Linux 2/3.1.8"
-          eb create my-environment
           aws s3 cp /tmp/workspace s3://${BUCKET_NAME} --recursive
-          eb deploy my-environment
-          eb status
+  eb-create:
+    docker:
+      - image: 'cimg/base:stable'
+    steps:
+      - checkout
+      - eb/setup
+      - run:
+          command: |
+            export BUCKET_NAME=elasticbeanstalk-${AWS_DEFAULT_REGION}-${AWS_ACCOUNT_ID}
+            eb init my-environment -r $AWS_DEFAULT_REGION -p "arn:aws:elasticbeanstalk:us-east-1::platform/Corretto 11 running on 64bit Amazon Linux 2/3.1.8"
+            eb create my-environment
+            aws-s3 cp /tmp/workspace s3://${BUCKET_NAME} --recursive
+            eb deploy my-environment
+            eb status
+          name: You may now use the EB CLI within this job
+
+  eb-deploy:
+    docker:
+      - image: 'cimg/base:stable'
+    steps:
+      - checkout
+      - eb/deploy:
+          environment-name: my-environment
+          label: version-${CIRCLE_SHA1:0:7}
 workflows:
   elastic-beanstalk-workflow:
     jobs:
       - eb-build
-      - eb-deploy:
+      - eb-create:
           requires:
             - eb-build
+      - eb-upload:
+          requires:
+            - eb-create
+      - eb-deploy:
+          requires:
+            - eb-upload
