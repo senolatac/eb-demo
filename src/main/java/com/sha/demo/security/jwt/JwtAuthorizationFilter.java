@@ -1,6 +1,7 @@
 package com.sha.demo.security.jwt;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -26,7 +27,9 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter
     protected boolean shouldNotFilter(HttpServletRequest request)
     {
         // internal api endpoints have their own auth filter
-        return request.getRequestURI().startsWith("/api/internal");
+        String uri = request.getRequestURI();
+        return uri.startsWith("/api/internal")
+                || (uri.startsWith("/api/book") && HttpMethod.GET.name().equals(request.getMethod()));
     }
 
     @Override
