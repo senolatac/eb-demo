@@ -1,0 +1,8 @@
+{
+  "name": "sha-angular-back",
+  "buildpacks": [
+    {
+      "url": "heroku/gradle"
+    }
+  ]
+}

@@ -1,36 +1,8 @@
 version: 2.1
 orbs:
   eb: circleci/aws-elastic-beanstalk@1.0.0
-  aws-s3: circleci/aws-s3@2.0.0
 jobs:
-  eb-build:
-    docker:
-      - image: circleci/openjdk:11
-    steps:
-      - checkout
-      - run:
-          name: Assemble JAR
-          command: |
-            # Skip this for other nodes
-                  if [ "$CIRCLE_NODE_INDEX" == 0 ]; then
-                    ./gradlew assemble
-                  fi
-            # As the JAR was only assembled in the first build container, build/libs will be empty in all the other build containers.
-      - persist_to_workspace:
-          root: .
-          paths:
-            - build/libs
-  eb-upload:
-    docker:
-      - image: circleci/python:2.7
-    steps:
-      - attach_workspace:
-          at: /tmp/workspace
-      - run: sudo pip install awscli
-      - run: |
-          aws s3 cp /tmp/workspace/build/libs/*.jar s3://elasticbeanstalk-us-east-1-548035349282/${CIRCLE_BUILD_NUM}/web.jar
-          aws elasticbeanstalk create-application-version --application-name my-environment --version-label ${CIRCLE_BUILD_NUM} --source-bundle S3Bucket="elasticbeanstalk-us-east-1-548035349282",S3Key="${CIRCLE_BUILD_NUM}/web.jar" --region us-east-1
-  eb-create:
+  eb-deploy:
     docker:
       - image: 'cimg/base:stable'
     steps:
@@ -38,13 +10,13 @@ jobs:
       - eb/setup
       - run:
           command: |
-            eb init my-environment -r $AWS_DEFAULT_REGION -p "arn:aws:elasticbeanstalk:us-east-1::platform/Corretto 11 running on 64bit Amazon Linux 2/3.1.8"
-            eb create my-environment
+            export MY_APP=my-app
+            export MY_ENV=my-environment
+            eb init $MY_APP -r $AWS_DEFAULT_REGION -p corretto-11
+            eb create $MY_ENV --single --instance-types t2.micro --envvars key1=val1 || echo "environment is already created."
+            eb deploy $MY_ENV -l v-${CIRCLE_BUILD_NUM}
           name: You may now use the EB CLI within this job
 workflows:
-  elastic-beanstalk-workflow:
+  main_workflow:
     jobs:
-      - eb-build
-      - eb-upload:
-          requires:
-            - eb-build
+      - eb-deploy
