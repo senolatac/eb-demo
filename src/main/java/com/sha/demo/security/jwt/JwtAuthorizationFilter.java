@@ -28,8 +28,8 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter
     {
         // internal api endpoints have their own auth filter
         String uri = request.getRequestURI();
-        return uri.startsWith("/api/internal")
-                || (uri.startsWith("/api/book") && HttpMethod.GET.name().equals(request.getMethod()));
+        return uri.startsWith("/api/internal");
+                //|| (uri.startsWith("/api/book") && HttpMethod.GET.name().equals(request.getMethod()));
     }
 
     @Override
